@@ -1,0 +1,113 @@
+﻿@model List<CapaEntidad.Cliente>
+@{
+    ViewBag.Title = "InsertarVentaConcepto";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="max-width: 1200px; margin-top: 40px; margin: auto;">
+
+    <h5 class="my-3">Maestro detalles</h5>
+
+    @using (Html.BeginForm("GuardarVentaConcepto", "Venta", FormMethod.Post))
+    {
+        <div class="row">
+            <div class="form-group">
+                <label>Cliente</label>
+                <select name="OneVenta.idCliente" class="form-control">
+                    <option value="">Selecciones</option>
+                    @foreach (var clientes in Model)
+                    {
+                        <option value="@clientes.idCliente">@clientes.nombre</option>
+
+                    }
+                </select>
+            </div>
+        </div>
+        <hr />
+        <h5 class="text-center">Conceptos</h5>
+        <div class="row">
+            <div class="form-group">
+                Nombre
+                <input type="text" id="Nombre" />
+                Cantidad
+                <input type="number" id="Cantidad" />
+                Precio
+                <input type="number" step="0.01" id="Precio" />
+                <input value="Agregar" type="button" onclick="AgregaConcepto(); return false;" />
+            </div>
+            <div id="divConceptos">
+                <table id="tablaConceptos" class="table">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Cantidad</th>
+                        <th>Precio unitario</th>
+                        <th>Total</th>
+                    </tr>
+
+                </table>
+
+
+            </div>
+
+            <div class="form-group mt-5">
+                <input type="submit" class="btn btn-outline-success float-left" />
+            </div>
+        </div>
+    }
+
+</div>
+
+@section scripts{
+    <script>
+        var num = 0;
+        function AgregaConcepto() {
+            let Cantidad = document.getElementById("Cantidad").value;
+            let Precio = document.getElementById("Precio").value;
+            let Nombre = document.getElementById("Nombre").value;
+            //agregamos tabla
+            let Tabla = document.getElementById("tablaConceptos");
+            let TR = document.createElement("tr");
+            let TDCantidad = document.createElement("td");
+            let TDNombre = document.createElement("td");
+            let TDPrecio = document.createElement("td");
+            let TDTotal = document.createElement("td");
+            TR.appendChild(TDNombre);
+            TR.appendChild(TDCantidad);
+            TR.appendChild(TDPrecio);
+            TR.appendChild(TDTotal);
+            TDNombre.innerHTML = Nombre;
+            TDCantidad.innerHTML = Cantidad;
+            TDPrecio.innerHTML = Precio;
+            TDTotal.innerHTML = parseFloat(Cantidad) * parseFloat(Precio);
+            Tabla.appendChild(TR);
+            //agregamos hiddens
+            let DivConceptos = document.getElementById("divConceptos");
+            let HiddenIndex = document.createElement("input");
+            let HiddenCantidad = document.createElement("input");
+            let HiddenNombre = document.createElement("input");
+            let HiddenPrecio = document.createElement("input");
+            HiddenIndex.name = "conceptos.Index";
+            HiddenIndex.value = num;
+            HiddenIndex.type = "hidden";
+            HiddenCantidad.name = "Concepto[" + num + "].cantidad";
+            HiddenCantidad.value = Cantidad;
+            HiddenCantidad.type = "hidden";
+            HiddenNombre.name = "Concepto[" + num + "].nombre";
+            HiddenNombre.value = Nombre;
+            HiddenNombre.type = "hidden";
+            HiddenPrecio.name = "Concepto[" + num + "].precioUnitario";
+            HiddenPrecio.value = Precio;
+            HiddenPrecio.type = "hidden";
+            DivConceptos.appendChild(HiddenIndex);
+            DivConceptos.appendChild(HiddenCantidad);
+            DivConceptos.appendChild(HiddenNombre);
+            DivConceptos.appendChild(HiddenPrecio);
+
+            document.getElementById("Cantidad").value = "";
+            document.getElementById("Precio").value = "";
+            document.getElementById("Nombre").value = "";
+            num++;
+        }
+    </script>
+
+}

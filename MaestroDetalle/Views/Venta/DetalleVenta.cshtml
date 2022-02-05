@@ -1,0 +1,99 @@
+﻿@model CapaEntidad.ViewModel.VentaViewModel
+@{
+    ViewBag.Title = "DetalleVenta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="mt-3">
+    <h4>Cliente</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            Fecha
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.fecha)
+        </dd>
+        <dt>
+            Nombre cliente
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Cliente.nombre)
+        </dd>
+        <dt>
+            Telefono cliente
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Cliente.telefono)
+        </dd>
+
+        <dt>
+            Email
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Cliente.email)
+        </dd>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Lista de Conceptos</h5>
+    </div>
+    <div class="card-body">
+        
+        <table id="tabla" class="display cell-border w-100">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+<input type="hidden" id="Id" value="@Model.idVenta" />
+
+@section scripts{
+
+    <script>
+
+        var dataTabla;
+        var filaSeleccionada;
+
+       dataTabla = $("#tabla").DataTable({
+            responsive: true,
+            ordering: false,
+            "ajax": {
+                 url: "@Url.Action("ListarConceptosVenta", "Venta")",
+                type: "GET",
+                data: {
+                    Id: $("#Id").val()
+                },
+                dataType: "json",
+                contentType: "application/json"
+            },
+            "columns":
+                [
+                    { "data": "nombre" },
+                    { "data": "cantidad" },
+                    { "data": "precioUnitario" },
+                    { "data": "total" }
+
+                ],
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.11.3/i18n/es_es.json"
+            }
+       });
+    </script>
+}
+

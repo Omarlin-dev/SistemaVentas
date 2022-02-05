@@ -1,0 +1,288 @@
+﻿@model CapaEntidad.ViewModel.ClienteVentaViewModel
+
+@{
+    ViewBag.Title = "Detalle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="mt-3">
+    <h4>Cliente</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            Nombre
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Cliente.nombre)
+        </dd>
+
+        <dt>
+            Telefono
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Cliente.telefono)
+        </dd>
+
+        <dt>
+            Email
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Cliente.email)
+        </dd>
+        <dt>
+            Monto Total a Pagar
+        </dt>
+        <dd>
+            @Model.total
+        </dd>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Lista de Conceptos</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-12">
+                <button type="button" class="btn btn-success" onclick="abrirModal(null)">Crear Nuevo</button>
+            </div>
+        </div>
+
+        <hr />
+        <table id="tabla" class="display cell-border w-100">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+<input type="hidden" id="Id" value="@Model.Cliente.idCliente" />
+
+
+<!-- Modal -->
+<div class="modal fade" id="modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Conceptos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-1">
+                    <input type="hidden" id="txtId" />
+                    <input type="hidden" id="numVenta" />
+                    <div class="col-12 form-group">
+                        <label for="txtNombre" class="form-label">Nombre</label><br />
+                        <input type="text" id="txtNombre" autocomplete="off" class="form-control" />
+                    </div>
+                    <div class="col-12 form-group">
+                        <label for="numCantidad" class="form-label">Cantidad</label><br />
+                        <input type="number" id="numCantidad" autocomplete="off" class="form-control" />
+                    </div>
+                    <div class="col-12 form-group">
+                        <label for="numPrecio" class="form-label">Precio Unitario</label><br />
+                        <input type="number" step="0.01" id="numPrecio" autocomplete="off" class="form-control" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div id="mensajeError" class="alert alert-danger" role="alert">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+
+    <script>
+
+        var dataTabla;
+        var filaSeleccionada;
+
+       dataTabla = $("#tabla").DataTable({
+            responsive: true,
+            ordering: false,
+            "ajax": {
+                 url: "@Url.Action("ListarDetalleConceptos", "Cliente")",
+                type: "GET",
+                data: {
+                    Id: $("#Id").val()
+                },
+                dataType: "json",
+                contentType: "application/json"
+            },
+            "columns":
+                [
+                    { "data": "nombre" },
+                    { "data": "cantidad" },
+                    { "data": "precioUnitario" },
+                    { "data": "total" },
+                    {
+                        "defaultContent": "<button type='button' class='btn btn-warning btn-sm btn-editar mx-1'><i class='fa fa-pen'></i></button>" +
+                            "<button type='button' class='btn btn-danger btn-sm btn-eliminar'><i class='fa fa-trash'></i></button>",
+                        "orderable": false,
+                        "searchable": false,
+                        "width": "120px"
+                    }
+                ],
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.11.3/i18n/es_es.json"
+            }
+       });
+
+     function abrirModal(json) {
+            $("#txtId").val(0)
+            $("#txtNombre").val("")
+            $("#numCantidad").val("")
+            $("#numPrecio").val("")
+            $("#numVenta").val("")
+            $("#mensajeError").hide();
+
+            if (json != null) {
+                $("#txtId").val(json.idConcepto)
+                $("#txtNombre").val(json.nombre)
+                $("#numCantidad").val(json.cantidad)
+                $("#numPrecio").val(json.precioUnitario)
+                $("#numVenta").val(json.idVenta)
+            }
+
+                $("#modal").modal("show");
+        }        
+
+        $("#tabla tbody").on("click", ".btn-editar", function () {
+            filaSeleccionada = $(this).closest("tr");
+            var datos = dataTabla.row(filaSeleccionada).data();
+            abrirModal(datos);
+        });
+
+        function Guardar() {
+            var Concepto = {
+                idConcepto: $("#txtId").val(),
+                idCliente: $("#Id").val(),
+                idVenta:   $("#numVenta").val(),
+                nombre: $("#txtNombre").val(),
+                cantidad: $("#numCantidad").val(),
+                precioUnitario: $("#numPrecio").val() 
+            }
+
+            jQuery.ajax({
+                url: "@Url.Action("GuardarConceptosCliente", "Cliente")",
+                type: "POST",
+                data: JSON.stringify({ conceptoModel: Concepto }),
+                dataType: "json",
+                contentType: "application/json; charset= utf-8 ",
+                success: function (data) {
+                    $(".modal-body").LoadingOverlay("hide");
+
+                    //cliente nuevo
+                    if (Concepto.idConcepto == 0) {
+                        if (data.resultado != 0) {
+                            $("#modal").modal("hide");
+                            setTimeout(function () {
+                                swal("Operacion realizada con Exito!", "Presione el boton!", "success")
+                            }, 2000);
+                            Concepto.idConcepto = data.resultado;
+                            Concepto.total = Concepto.cantidad * Concepto.precioUnitario;
+                            dataTabla.row.add(Concepto).draw(false);
+                        } else {
+                            $("#mensajeError").text("Error al intentar insertar los datos");
+                            $("#mensajeError").show();
+                        }
+                    }
+                    //cliente editar
+                    else {
+                        if (data.resultado) {
+                            $("#modal").modal("hide");
+                            setTimeout(function () {
+                                swal("Operacion realizada con Exito!", "Presione el boton!", "success")
+                            }, 2000);
+                            Concepto.total = Concepto.cantidad * Concepto.precioUnitario;
+                            dataTabla.row(filaSeleccionada).data(Concepto).draw(false);
+                            filaSeleccionada = null;
+                        } else {
+                            $("#mensajeError").text("Error al intentar editar los datos");
+                            $("#mensajeError").show();
+                        }
+                    }
+                },
+                error: function (error) {
+                    $(".modal-body").LoadingOverlay("hide");
+                    $("#mensajeError").text("Error Ajax " + error);
+                    $("#mensajeError").show();
+                },
+                beforeSend: function () {
+                    setTimeout(function () {
+                        $(".modal-body").LoadingOverlay("show", {
+                            imageResizeFactor: 2,
+                            text: "Cargando...",
+                            size: 14
+                        })
+                    }, 2000)
+                },
+            });
+        }
+
+         $("#tabla tbody").on("click", ".btn-eliminar", function () {
+             filaSeleccionada = $(this).closest("tr");
+             var datos = dataTabla.row(filaSeleccionada).data();
+            swal({
+                title: "Esta seguro?",
+                text: "Desea eliminar el Cliente!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Si",
+                cancelButtonText: "No",
+                closeOnConfirm: true
+            },
+                function () {
+                    jQuery.ajax({
+                        url: "@Url.Action("EliminarConcepto", "Cliente")",
+                        type: "POST",
+                        data: JSON.stringify({ Id: datos.idConcepto }),
+                        dataType: "json",
+                        contentType: "application/json; charset= utf-8",
+                        success: function (data) {
+
+                            if (data.resultado) {
+                                setTimeout(function () {
+                                    swal("Eliminado con exito!", "Presione el boton!", "success")
+                                }, 2000)
+                                dataTabla.row(filaSeleccionada).remove().draw();
+                            } else {
+                                setTimeout(function () {
+                                    swal("No se pudo eliminar!", "Presione el boton!", "danger")
+                                }, 2000)
+                            }
+                        },
+                        error: function (data) {
+                            console.log(data);
+                        }
+
+                    })
+                });
+         });
+
+    </script>
+}
